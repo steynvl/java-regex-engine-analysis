@@ -1,0 +1,21 @@
+--- /dev/fd/63	2021-02-14 05:30:30.187806939 +0200
++++ /dev/fd/62	2021-02-14 05:30:30.187806939 +0200
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
++ * Copyright (c) 1999, 2018, Oracle and/or its affiliates. All rights reserved.
+  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+  *
+  * This code is free software; you can redistribute it and/or modify it
+@@ -95,8 +95,10 @@
+             sb.append(" near index ");
+             sb.append(index);
+         }
++        sb.append(System.lineSeparator());
+         sb.append(pattern);
+-        if (index >= 0) {
++        if (index >= 0 && pattern != null && index < pattern.length()) {
++            sb.append(System.lineSeparator());
+             for (int i = 0; i < index; i++) sb.append(' ');
+             sb.append('^');
+         }
