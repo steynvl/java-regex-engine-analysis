@@ -4226,6 +4226,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             this.cmax = cmax;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
             int j;
             for (j = 0; j < cmin; j++) {
                 if (atom.match(matcher, i, seq)) {
@@ -4376,6 +4379,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             this.capture = capture;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
             int[] groups = matcher.groups;
             int[] locals = matcher.locals;
             int save0 = locals[localIndex];
@@ -4742,6 +4748,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             this.loop = loop;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
             return loop.matchInit(matcher, i, seq);
         }
         boolean study(TreeInfo info) {
@@ -4765,6 +4774,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             this.beginIndex = beginIndex;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
             // Avoid infinite loop in zero-length case.
             if (i > matcher.locals[beginIndex]) {
                 int count = matcher.locals[countIndex];
@@ -4832,6 +4844,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             super(countIndex, beginIndex);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
             // Check for zero length group
             if (i > matcher.locals[beginIndex]) {
                 int count = matcher.locals[countIndex];
