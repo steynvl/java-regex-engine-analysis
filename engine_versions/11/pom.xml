@@ -39,7 +39,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>za.ac.sun.cs.regex.RunBenchmarks</mainClass>
+              <mainClass>za.ac.sun.cs.regex.Main</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
