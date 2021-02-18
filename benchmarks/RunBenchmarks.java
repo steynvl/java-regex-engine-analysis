@@ -150,7 +150,7 @@ public class RunBenchmarks {
         }
 
         List<PatternString> data = readData(dataFile);
-        runBenchmarks(8, data);
+        runBenchmarks(Integer.parseInt(javaVersion), data);
         writeData(data, dataFile);
     }
 
