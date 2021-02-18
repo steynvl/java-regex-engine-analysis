@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class RunBenchmarks {
+public class Main {
 
     private class PatternString {
         private String pattern;

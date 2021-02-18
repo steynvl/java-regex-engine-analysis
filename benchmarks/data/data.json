@@ -1,0 +1,16 @@
+[
+  {
+    "pattern": "(a+)+",
+    "string": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!",
+    "jdk8": "TimeoutException",
+    "jdk9": "0.012805858",
+    "jdk11": "0.013260407"
+  },
+  {
+    "pattern": "a+",
+    "string": "abc",
+    "jdk8": "5.6461E-5",
+    "jdk9": "2.8408E-5",
+    "jdk11": "2.3163E-5"
+  }
+]
