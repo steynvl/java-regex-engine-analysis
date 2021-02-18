@@ -3553,6 +3553,10 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
          * This method implements the classic accept node.
          */
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (Thread.currentThread().isInterrupted()) {
+                return false;
+            }
+
             matcher.last = i;
             matcher.groups[0] = matcher.first;
             matcher.groups[1] = matcher.last;
