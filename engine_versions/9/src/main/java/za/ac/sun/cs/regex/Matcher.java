@@ -177,7 +177,7 @@ public final class Matcher implements MatchResult {
      */
     int[] locals;
 
-    /**
+    /** XXX-MEMOIZATION
      * Storage used by top greedy Loop node to store a specific hash set to
      * keep the beginning index of the failed repetition match. The nodes
      * themselves are stateless, so they rely on this field to hold state
@@ -247,6 +247,7 @@ public final class Matcher implements MatchResult {
         int parentGroupCount = Math.max(parent.capturingGroupCount, 10);
         groups = new int[parentGroupCount * 2];
         locals = new int[parent.localCount];
+        /* XXX-MEMOIZATION */
         localsPos = new IntHashSet[parent.localTCNCount];
 
         // Put fields into initial states
@@ -384,6 +385,7 @@ public final class Matcher implements MatchResult {
             groups[i] = -1;
         for (int i = 0; i < locals.length; i++)
             locals[i] = -1;
+        /* XXX-MEMOIZATION */
         localsPos = new IntHashSet[parentPattern.localTCNCount];
         modCount++;
         return this;
@@ -407,6 +409,7 @@ public final class Matcher implements MatchResult {
             groups[i] = -1;
         for(int i=0; i<locals.length; i++)
             locals[i] = -1;
+        /* XXX-MEMOIZATION */
         for (int i = 0; i < localsPos.length; i++) {
             if (localsPos[i] != null)
                 localsPos[i].clear();
@@ -1720,6 +1723,7 @@ public final class Matcher implements MatchResult {
         this.oldLast = oldLast < 0 ? from : oldLast;
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
+        /* XXX-MEMOIZATION */
         for (int i = 0; i < localsPos.length; i++) {
             if (localsPos[i] != null)
                 localsPos[i].clear();

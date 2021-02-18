@@ -1016,19 +1016,19 @@ public final class Pattern
      */
     transient GroupHead[] groupNodes;
 
-    /**
+    /** XXX-MEMOIZATION
      * Temporary storage used to store the top level closure nodes.
      */
     transient List<Node> topClosureNodes;
 
-    /**
+    /** XXX-MEMOIZATION
      * The number of top greedy closure nodes in this Pattern. Used by
      * matchers to allocate storage needed for a IntHashSet to keep the
      * beginning pos {@code i} of all failed match.
      */
     transient int localTCNCount;
 
-    /*
+    /* XXX-MEMOIZATION
      * Turn off the stop-exponential-backtracking optimization if there
      * is a group ref in the pattern.
      */
@@ -1762,6 +1762,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         buffer = new int[32];
         groupNodes = new GroupHead[10];
         namedGroups = null;
+        /* XXX-MEMOIZATION */
         topClosureNodes = new ArrayList<>(10);
 
         if (has(LITERAL)) {
@@ -1793,6 +1794,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             root = hasSupplementary ? new StartS(matchRoot) : new Start(matchRoot);
         }
 
+        /* XXX-MEMOIZATION */
         // Optimize the greedy Loop to prevent exponential backtracking, IF there
         // is no group ref in this pattern. With a non-negative localTCNCount value,
         // the greedy type Loop, Curly will skip the backtracking for any starting
@@ -1812,6 +1814,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         groupNodes = null;
         patternLength = 0;
         compiled = true;
+        /* XXX-MEMOIZATION */
         topClosureNodes = null;
     }
 
@@ -3015,6 +3018,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 } else {
                     throw error("Unknown look-behind group");
                 }
+                /* XXX-MEMOIZATION */
                 // clear all top-closure-nodes inside lookbehind
                 if (saveTCNCount < topClosureNodes.size())
                     topClosureNodes.subList(saveTCNCount, topClosureNodes.size()).clear();
@@ -3057,7 +3061,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             root = node;
             return node;    // Dual return
         }
-
+        /* XXX-MEMOIZATION */
         // have group closure, clear all inner closure nodes from the
         // top list (no backtracking stopper optimization for inner
         if (saveTCNCount < topClosureNodes.size())
@@ -3099,6 +3103,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 Loop loop;
                 if (curly.type == Qtype.GREEDY) {
                     loop = new Loop(this.localCount, temp);
+                    /* XXX-MEMOIZATION */
                     // add the max_reps greedy to the top-closure-node list
                     if (curly.cmax == MAX_REPS)
                         topClosureNodes.add(loop);
@@ -4911,6 +4916,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 // This block is for after we have the minimum
                 // iterations required for the loop to match
                 if (count < cmax) {
+                    /* XXX-MEMOIZATION */
                     // Let's check if we have already tried and failed
                     // at this starting position "i" in the past.
                     // If yes, then just return false wihtout trying
@@ -4926,6 +4932,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                     if (b)
                         return true;
                     matcher.locals[countIndex] = count;
+                    /* XXX-MEMOIZATION */
                     // save the failed position
                     if (posIndex != -1) {
                         matcher.localsPos[posIndex].add(i);
@@ -4937,6 +4944,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         boolean matchInit(Matcher matcher, int i, CharSequence seq) {
             int save = matcher.locals[countIndex];
             boolean ret = false;
+            /* XXX-MEMOIZATION */
             if (posIndex != -1 && matcher.localsPos[posIndex] == null) {
                 matcher.localsPos[posIndex] = new IntHashSet();
             }

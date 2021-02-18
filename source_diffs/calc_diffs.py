@@ -47,7 +47,6 @@ def compute_diffs(root_dir: Path, src_files1: List[Path], src_files2: List[Path]
     for s1, s2 in itertools.zip_longest(sorted(src_files1), sorted(src_files2)):
         if get_last(s1) != get_last(s2):
             continue
-
         compute_diff(root_dir, s1, s2)
 
 
