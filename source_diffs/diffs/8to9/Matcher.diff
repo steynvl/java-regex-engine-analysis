@@ -1,16 +1,3 @@
---- /dev/fd/63	2021-02-14 05:30:30.119807804 +0200
-+++ /dev/fd/62	2021-02-14 05:30:30.119807804 +0200
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 1999, 2013, Oracle and/or its affiliates. All rights reserved.
-+ * Copyright (c) 1999, 2015, Oracle and/or its affiliates. All rights reserved.
-  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-  *
-  * This code is free software; you can redistribute it and/or modify it
-@@ -23,7 +23,16 @@
-  * questions.
-  */
- package za.ac.sun.cs.regex;
 +import java.util.ConcurrentModificationException;
 +import java.util.Iterator;
 +import java.util.NoSuchElementException;
@@ -21,35 +8,6 @@
 +import java.util.function.Function;
 +import java.util.stream.Stream;
 +import java.util.stream.StreamSupport;
- /**
-  * An engine that performs match operations on a {@linkplain java.lang.CharSequence
-  * character sequence} by interpreting a {@link Pattern}.
-@@ -51,7 +60,7 @@
-  *
-  * <p> A matcher finds matches in a subset of its input called the
-  * <i>region</i>. By default, the region contains all of the matcher's input.
-- * The region can be modified via the{@link #region region} method and queried
-+ * The region can be modified via the {@link #region region} method and queried
-  * via the {@link #regionStart regionStart} and {@link #regionEnd regionEnd}
-  * methods. The way that the region boundaries interact with some pattern
-  * constructs can be changed. See {@link #useAnchoringBounds
-@@ -62,9 +71,10 @@
-  * new strings whose contents can, if desired, be computed from the match
-  * result.  The {@link #appendReplacement appendReplacement} and {@link
-  * #appendTail appendTail} methods can be used in tandem in order to collect
-- * the result into an existing string buffer, or the more convenient {@link
-- * #replaceAll replaceAll} method can be used to create a string in which every
-- * matching subsequence in the input sequence is replaced.
-+ * the result into an existing string buffer or string builder. Alternatively,
-+ * the more convenient {@link #replaceAll replaceAll} method can be used to
-+ * create a string in which every matching subsequence in the input sequence
-+ * is replaced.
-  *
-  * <p> The explicit state of a matcher includes the start and end indices of
-  * the most recent successful match.  It also includes the start and end
-@@ -153,6 +163,13 @@
-      */
-     int[] locals;
      /**
 +     * Storage used by top greedy Loop node to store a specific hash set to
 +     * keep the beginning index of the failed repetition match. The nodes

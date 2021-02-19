@@ -1,9 +1,9 @@
 package za.ac.sun.cs.regex;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import org.apache.commons.cli.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -12,26 +12,49 @@ import java.util.concurrent.*;
 
 public class Main {
 
-    private class PatternString {
+    private static class Report {
+        private String time;
+        private String memoryUsed;
+        private String error;
+
+        public void setTime(String time) {
+            this.time = time;
+        }
+
+        public void setMemoryUsed(String memoryUsed) {
+            this.memoryUsed = memoryUsed;
+        }
+
+        public void setError(String error) {
+            this.error = error;
+        }
+
+        public void print() {
+            if (error != null) {
+                System.out.println(error);
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append(time == null ? "NA" : time);
+                sb.append(" ");
+                sb.append(memoryUsed == null ? "NA" : memoryUsed);
+                System.out.println(sb.toString());
+            }
+        }
+    }
+
+    private static class PatternString {
         private String pattern;
         private String string;
-        private String jdk8;
-        private String jdk9;
-        private String jdk11;
 
-        public PatternString(String pattern, String string, String jdk8,
-                             String jdk9, String jdk11) {
+        public PatternString(String pattern, String string) {
             this.pattern = pattern;
             this.string = string;
-            this.jdk8 = jdk8;
-            this.jdk9 = jdk9;
-            this.jdk11 = jdk11;
         }
     }
 
     private static final Type PATTERN_STRING_TYPE = new TypeToken<List<PatternString>>() {}.getType();
 
-    private static List<PatternString> readData(String dataFile) {
+    private static List<PatternString> readJsonFromFile(String dataFile) {
         Gson gson = new Gson();
         JsonReader reader = null;
         try {
@@ -43,37 +66,8 @@ public class Main {
         return gson.fromJson(reader, PATTERN_STRING_TYPE);
     }
 
-    private static void writeData(List<PatternString> data, String dataFile) {
-        try (Writer writer = new FileWriter(dataFile)) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            gson.toJson(data, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void addTimeToAppropriateField(int javaVersion,
-                                                  PatternString ps,
-                                                  String time) {
-        switch (javaVersion) {
-            case 8:
-                ps.jdk8 = time;
-                break;
-            case 9:
-                ps.jdk9 = time;
-                break;
-            case 11:
-                ps.jdk11 = time;
-                break;
-            default:
-                System.out.println("Unsupported Java Version: " + javaVersion);
-                System.exit(2);
-                break;
-        }
-    }
-
-    private static void processPatternString(int javaVersion, PatternString patternString) {
-        final long TIMEOUT = 30;
+    private static void processPatternString(PatternString patternString, Report report) {
+        final long TIMEOUT = 3;
 
         final Runnable tryMatch = new Thread(() -> {
             long startTime = System.nanoTime();
@@ -86,7 +80,7 @@ public class Main {
             long duration = (endTime - startTime);
             double seconds = (double)duration / 1_000_000_000.0;
             if (seconds < (double)TIMEOUT) {
-                addTimeToAppropriateField(javaVersion, patternString, String.valueOf(seconds));
+                report.setTime(String.valueOf(seconds));
             }
         });
 
@@ -97,11 +91,11 @@ public class Main {
         try {
             future.get(TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
-            addTimeToAppropriateField(javaVersion, patternString, "InterruptedException");
+            report.setError("InterruptedException");
         } catch (ExecutionException ee) {
-            addTimeToAppropriateField(javaVersion, patternString, "ExecutionException");
+            report.setError("ExecutionException");
         } catch (TimeoutException te) {
-            addTimeToAppropriateField(javaVersion, patternString, "TimeoutException");
+            report.setError("TimeoutException");
             future.cancel(true);
             executor.shutdownNow();
         }
@@ -111,19 +105,16 @@ public class Main {
         }
     }
 
-    private static void runBenchmarks(int javaVersion, List<PatternString> data) {
+    private static void runBenchmarks(List<PatternString> data) {
         for (PatternString ps : data) {
-            processPatternString(javaVersion, ps);
+            runBenchmark(ps);
         }
     }
 
-    private static boolean isDigit(String string) {
-        try {
-            Integer.parseInt(string);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    private static void runBenchmark(PatternString ps) {
+        Report report = new Report();
+        processPatternString(ps, report);
+        report.print();
     }
 
     private static boolean isFile(String pathToFile) {
@@ -131,27 +122,59 @@ public class Main {
         return f.exists() && !f.isDirectory();
     }
 
+    public static Options createOptions() {
+        Option jsonFile = Option.builder()
+                .desc("path to json file with regexes and input string")
+                .hasArg()
+                .longOpt("jsonfile")
+                .build();
+
+        Option regex = Option.builder()
+                .desc("regex to test")
+                .hasArg()
+                .longOpt("regex")
+                .build();
+
+        Option inputString = Option.builder()
+                .desc("input string to match with regex")
+                .hasArg()
+                .longOpt("input")
+                .build();
+
+        Options options = new Options();
+        options.addOption(jsonFile);
+        options.addOption(regex);
+        options.addOption(inputString);
+        return options;
+    }
+
     public static void main(String[] args) {
-        if (args.length != 2) {
-            System.out.println("Usage: java RunBenchmarks <java_version> <path_to_data.json>");
-            System.exit(0);
+        Options options = createOptions();
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine line = null;
+        try {
+            line = parser.parse(options, args);
+        } catch (ParseException exp) {
+            System.exit(1);
         }
 
-        String javaVersion = args[0];
-        if (!isDigit(javaVersion)) {
-            System.out.println("Invalid java version, must be a digit!");
-            System.exit(3);
+        if (line.hasOption("jsonfile")) {
+            String jsonFile = line.getOptionValue("jsonfile");
+            if (!isFile(jsonFile)) {
+                System.err.printf("'%s' is not a file!\n", jsonFile);
+                System.exit(2);
+            }
+            List<PatternString> data = readJsonFromFile(jsonFile);
+            runBenchmarks(data);
+        } else if (line.hasOption("regex") && line.hasOption("input")) {
+            String regex = line.getOptionValue("regex");
+            String inputString = line.getOptionValue("input");
+            runBenchmark(new PatternString(regex, inputString));
+        } else {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("java-regex-engine", options);
         }
-
-        String dataFile = args[1];
-        if (!isFile(dataFile)) {
-            System.out.printf("'%s' is not a file!\n", dataFile);
-            System.exit(4);
-        }
-
-        List<PatternString> data = readData(dataFile);
-        runBenchmarks(Integer.parseInt(javaVersion), data);
-        writeData(data, dataFile);
     }
 
 }
