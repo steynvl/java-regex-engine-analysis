@@ -156,6 +156,7 @@ public class Main {
         try {
             line = parser.parse(options, args);
         } catch (ParseException exp) {
+            System.out.println(exp.getMessage());
             System.exit(1);
         }
 
