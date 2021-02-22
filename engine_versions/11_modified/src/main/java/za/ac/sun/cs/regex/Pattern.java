@@ -2199,12 +2199,14 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             }
 
             node = closure(node);
+
             /* save the top dot-greedy nodes (.*, .+) as well
             if (node instanceof GreedyCharProperty &&
                 ((GreedyCharProperty)node).cp instanceof Dot) {
                 topClosureNodes.add(node);
             }
             */
+
             if (head == null) {
                 head = tail = node;
             } else {
@@ -3061,8 +3063,10 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 
         // have group closure, clear all inner closure nodes from the
         // top list (no backtracking stopper optimization for inner
+        /* XXX do not clear all inner closure nodes
         if (saveTCNCount < topClosureNodes.size())
             topClosureNodes.subList(saveTCNCount, topClosureNodes.size()).clear();
+        */
 
         if (node instanceof Ques) {
             Ques ques = (Ques) node;
