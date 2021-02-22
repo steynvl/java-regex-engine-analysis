@@ -1,0 +1,14 @@
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/PrintPattern.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/IntHashSet.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/package-info.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/Grapheme.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/Main.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/tests/RegExTest.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/tests/POSIX_ASCII.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/tests/POSIX_Unicode.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/CharPredicates.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/ASCII.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/MatchResult.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/Matcher.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/PatternSyntaxException.java
+/home/steyn/java-regex-engine-analysis/engine_versions/11_modified/src/main/java/za/ac/sun/cs/regex/Pattern.java
