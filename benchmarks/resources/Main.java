@@ -12,6 +12,8 @@ import java.util.concurrent.*;
 
 public class Main {
 
+    private static int TIMEOUT = 30;
+
     private static class Report {
         private String time;
         private String memoryUsed;
@@ -67,8 +69,6 @@ public class Main {
     }
 
     private static void processPatternString(PatternString patternString, Report report) {
-        final long TIMEOUT = 3;
-
         final Runnable tryMatch = new Thread(() -> {
             long startTime = System.nanoTime();
 
@@ -141,10 +141,17 @@ public class Main {
                 .longOpt("input")
                 .build();
 
+        Option timeout = Option.builder()
+                .desc("timeout after how many seconds")
+                .hasArg()
+                .longOpt("timeout")
+                .build();
+
         Options options = new Options();
         options.addOption(jsonFile);
         options.addOption(regex);
         options.addOption(inputString);
+        options.addOption(timeout);
         return options;
     }
 
@@ -158,6 +165,16 @@ public class Main {
         } catch (ParseException exp) {
             System.out.println(exp.getMessage());
             System.exit(1);
+        }
+
+        if (line.hasOption("timeout")) {
+            try {
+                TIMEOUT = Integer.parseInt(line.getOptionValue("timeout"));
+                if (TIMEOUT <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                System.err.printf("'%s' is not a valid timeout number!\n", line.getOptionValue("timeout"));
+                System.exit(3);
+            }
         }
 
         if (line.hasOption("jsonfile")) {
