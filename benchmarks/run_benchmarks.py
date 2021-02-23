@@ -1,19 +1,23 @@
 import os
 import shutil
 import sys
+import json
 from command import Command
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Dict
 
 
-DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/data.json').resolve()
+DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/small_exploit_strings.json').resolve()
 assert DATA_FILE.is_file()
 
-JAVA_BENCHMARK_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/Main.java').resolve()
+JAVA_BENCHMARK_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/resources/Main.java').resolve()
 assert JAVA_BENCHMARK_FILE.is_file()
 
 ENGINE_VERSIONS = Path(os.path.dirname(os.path.realpath(__file__)) + '/../engine_versions').resolve()
 assert ENGINE_VERSIONS.is_dir()
+
+RESULTS_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/results/').resolve()
+assert RESULTS_DIR.is_dir()
 
 PACKAGE_NAME = '/src/main/java/za/ac/sun/cs/regex/'
 
@@ -24,7 +28,7 @@ def get_last(path: Union[str, Path]):
     return path[path.rfind('/')+1:]
 
 
-def run_version_benchmarks(path_to_src: Path):
+def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[str]]]):
     assert path_to_src.is_dir()
     curr_dir = os.getcwd()
     os.chdir(str(path_to_src))
@@ -39,27 +43,50 @@ def run_version_benchmarks(path_to_src: Path):
         sys.exit(1)
     print('jdk{} compiled successfully!'.format(version_nr))
 
-    benchmark_jar = '{}/target/java-regex-v{}-1.0-SNAPSHOT-jar-with-dependencies.jar {} {}'\
-        .format(path_to_src, version_nr, version_nr, DATA_FILE)
+    benchmark_jar = '{}/target/java-regex-v{}-1.0-SNAPSHOT-jar-with-dependencies.jar --jsonfile {} --timeout {}'\
+        .format(path_to_src, version_nr, DATA_FILE, 6)
     cmd = Command('java -jar {}'.format(benchmark_jar), path_to_src)
     print('Running {}'.format(cmd.cmd))
-    sig, _, _ = cmd.run()
+    sig, out, _ = cmd.run()
     if sig != 0:
         print('\'{}\' returned exit code {}'.format(cmd.cmd, sig))
         sys.exit(2)
+    else:
+        process_output(out.split('\n'), version_nr, results)
 
     Command('mvn clean', path_to_src).run()
     os.remove(tmp_java_file)
     os.chdir(curr_dir)
 
 
-def run_benchmarks():
+def run_benchmarks(results: List[Dict[str, List[str]]]):
     for version in os.listdir(ENGINE_VERSIONS):
-        run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)))
+        run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)), results)
+
+
+def process_output(out: List[str], java_version: str, results: List[Dict[str, List[str]]]):
+    times = []
+    for line in map(lambda l: l.strip(), out):
+        if line == 'InterruptedException' or line == 'ExecutionException':
+            print('Skipping due to unexpected exception!')
+        elif line == 'TimeoutException':
+            times.append('timeout')
+        else:
+            line_list = line.split()
+            if len(line_list) != 2: continue
+            times.append(line_list[0])
+    results.append({java_version: times})
+
+
+def write_results(results: List[Dict[str, List[str]]]):
+    with open('{}/results_{}'.format(RESULTS_DIR, DATA_FILE.name), 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2)
 
 
 def main():
-    run_benchmarks()
+    results = []
+    run_benchmarks(results)
+    write_results(results)
 
 
 if __name__ == '__main__':
