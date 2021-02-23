@@ -76,11 +76,10 @@ public class Main {
             Matcher matcher = pattern.matcher(patternString.string);
             matcher.matches();
 
-            long endTime = System.nanoTime();
-            long duration = (endTime - startTime);
-            double seconds = (double)duration / 1_000_000_000.0;
+            long duration = System.nanoTime() - startTime;
+            long seconds = TimeUnit.NANOSECONDS.toSeconds(duration);
             if (seconds < (double)TIMEOUT) {
-                report.setTime(String.valueOf(seconds));
+                report.setTime(String.valueOf(TimeUnit.NANOSECONDS.toMillis(duration)));
             }
         });
 
