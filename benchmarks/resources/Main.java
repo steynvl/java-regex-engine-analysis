@@ -15,13 +15,13 @@ public class Main {
     private static int TIMEOUT = 30;
 
     private static class Report {
-        private String regex;
+        private PatternString patternString;
         private String time;
         private String memoryUsed;
         private String error;
 
-        public Report(String regex) {
-            this.regex = regex;
+        public Report(PatternString patternString) {
+            this.patternString = patternString;
         }
 
         public void setTime(String time) {
@@ -42,7 +42,10 @@ public class Main {
             } else {
                 StringBuilder sb = new StringBuilder();
                 sb.append("regex: ");
-                sb.append(regex);
+                sb.append(patternString.pattern);
+                sb.append("\n");
+                sb.append("exploit: ");
+                sb.append(patternString.string);
                 sb.append("\n");
                 sb.append(time == null ? "NA" : time);
                 sb.append(" ");
@@ -119,7 +122,7 @@ public class Main {
     }
 
     private static void runBenchmark(PatternString ps) {
-        Report report = new Report(ps.pattern);
+        Report report = new Report(ps);
         processPatternString(ps, report);
         report.print();
     }
