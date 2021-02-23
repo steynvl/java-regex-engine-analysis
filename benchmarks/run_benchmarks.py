@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Union, List, Dict
 
 
-DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/small_exploit_strings.json').resolve()
+DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib_exploit_strings.json').resolve()
 assert DATA_FILE.is_file()
 
 JAVA_BENCHMARK_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/resources/Main.java').resolve()
@@ -65,12 +65,23 @@ def run_benchmarks(results: List[Dict[str, List[str]]]):
 
 
 def process_output(out: List[str], java_version: str, results: List[Dict[str, List[str]]]):
+    current_regex, current_exploit = None, None
     times = []
     for line in map(lambda l: l.strip(), out):
-        if line == 'InterruptedException' or line == 'ExecutionException':
+        if line.startswith('regex: '):
+            current_regex = line[7:]
+        elif line.startswith('exploit: '):
+            current_exploit = line[9:]
+        elif line == 'InterruptedException' or line == 'ExecutionException':
             print('Skipping due to unexpected exception!')
+            current_regex, current_exploit = None, None
         elif line == 'TimeoutException':
             times.append('timeout')
+            if current_regex is not None and current_exploit is not None:
+                print('TIMED OUT: {} [exploit={}]'.format(current_regex, current_exploit))
+            else:
+                print('TIMED OUT: no regex or exploit available...')
+            current_regex, current_exploit = None, None
         else:
             line_list = line.split()
             if len(line_list) != 2: continue
