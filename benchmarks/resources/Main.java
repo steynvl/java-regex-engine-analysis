@@ -37,21 +37,22 @@ public class Main {
         }
 
         public void print() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("regex: ");
+            sb.append(patternString.pattern);
+            sb.append("\n");
+            sb.append("exploit: ");
+            sb.append(patternString.string);
+            sb.append("\n");
+
             if (error != null) {
-                System.out.println(error);
+                sb.append(error);
             } else {
-                StringBuilder sb = new StringBuilder();
-                sb.append("regex: ");
-                sb.append(patternString.pattern);
-                sb.append("\n");
-                sb.append("exploit: ");
-                sb.append(patternString.string);
-                sb.append("\n");
                 sb.append(time == null ? "NA" : time);
                 sb.append(" ");
                 sb.append(memoryUsed == null ? "NA" : memoryUsed);
-                System.out.println(sb.toString());
             }
+            System.out.println(sb.toString());
         }
     }
 
