@@ -111,7 +111,6 @@ public class Main {
                 return sb.toString();
 
             }
-
         }
 
         private static PatternString makeWithExample(String pattern, String exampleExploitString) {

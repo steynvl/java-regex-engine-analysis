@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Union, List, Dict
 
 
-DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib_exploit_strings.json').resolve()
+DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib_analysis_results.json').resolve()
 assert DATA_FILE.is_file()
 
 JAVA_BENCHMARK_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/resources/Main.java').resolve()
