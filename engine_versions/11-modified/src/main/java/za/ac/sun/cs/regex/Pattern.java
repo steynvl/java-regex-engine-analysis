@@ -2200,6 +2200,11 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 
             node = closure(node);
 
+            /* save the top greedy node as well */
+            if (node instanceof CharPropertyGreedy) {
+                topClosureNodes.add(node);
+            }
+
             /* save the top dot-greedy nodes (.*, .+) as well
             if (node instanceof GreedyCharProperty &&
                 ((GreedyCharProperty)node).cp instanceof Dot) {
