@@ -42,7 +42,7 @@ public class Main {
             sb.append(patternString.pattern);
             sb.append("\n");
             sb.append("exploit: ");
-            sb.append(patternString.string);
+            sb.append(patternString.exploitString.toString());
             sb.append("\n");
 
             if (error != null) {
@@ -58,12 +58,71 @@ public class Main {
 
     private static class PatternString {
         private String pattern;
-        private String string;
+        private ExploitString exploitString;
 
-        public PatternString(String pattern, String string) {
-            this.pattern = pattern;
-            this.string = string;
+        private static class ExploitString {
+            private final static int VERBATIM_CHAR_MIN = 33; /* ! */
+            private final static int VERBATIM_CHAR_MAX = 126; /* ~ */
+
+            private int degree;
+            private String[] separators;
+            private String[] pumps;
+            private String suffix;
+            private String exampleString;
+
+            private static String visualiseString(String s) {
+                StringBuilder sb = new StringBuilder();
+                char sArr[] = s.toCharArray();
+                for (int i = 0; i < sArr.length; i++) {
+                    int c = (int) sArr[i];
+                    if (c >= VERBATIM_CHAR_MIN && c <= VERBATIM_CHAR_MAX) {
+                        sb.append(sArr[i]);
+                    } else {
+                        if (c < 256) {
+                            sb.append(String.format("\\x%02x", c));
+                        } else {
+                            sb.append(String.format("\\x{%02x}", c));
+                        }
+
+                    }
+                }
+                return sb.toString();
+            }
+
+            @Override
+            public String toString() {
+                StringBuilder sb = new StringBuilder();
+                if (degree <= 0) {
+                    /* EDA exploit string */
+                    sb.append(visualiseString(separators[0]));
+                    sb.append(visualiseString(pumps[0]));
+                    sb.append("...");
+                    sb.append(visualiseString(pumps[0]));
+                } else {
+                    for (int i = 0; i < degree; i++) {
+                        sb.append(visualiseString(separators[i]));
+                        sb.append(visualiseString(pumps[i]));
+                        sb.append("...");
+                        sb.append(visualiseString(pumps[i]));
+                    }
+                }
+                String visibleSuffix = visualiseString(suffix);
+                sb.append(visibleSuffix);
+                return sb.toString();
+
+            }
+
         }
+
+        private static PatternString makeWithExample(String pattern, String exampleExploitString) {
+            ExploitString exploitString = new ExploitString();
+            exploitString.exampleString = exampleExploitString;
+            PatternString ps = new PatternString();
+            ps.pattern = pattern;
+            ps.exploitString = exploitString;
+            return ps;
+        }
+
     }
 
     private static final Type PATTERN_STRING_TYPE = new TypeToken<List<PatternString>>() {}.getType();
@@ -85,7 +144,7 @@ public class Main {
             long startTime = System.nanoTime();
 
             Pattern pattern = Pattern.compile(patternString.pattern);
-            Matcher matcher = pattern.matcher(patternString.string);
+            Matcher matcher = pattern.matcher(patternString.exploitString.exampleString);
             matcher.matches();
 
             long duration = System.nanoTime() - startTime;
@@ -199,7 +258,7 @@ public class Main {
         } else if (line.hasOption("regex") && line.hasOption("input")) {
             String regex = line.getOptionValue("regex");
             String inputString = line.getOptionValue("input");
-            runBenchmark(new PatternString(regex, inputString));
+            runBenchmark(PatternString.makeWithExample(regex, inputString));
         } else {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("java-regex-engine", options);
