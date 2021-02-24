@@ -2201,9 +2201,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             node = closure(node);
 
             /* save the top greedy node as well */
-            if (node instanceof CharPropertyGreedy) {
-                topClosureNodes.add(node);
-            }
+//            if (node instanceof CharPropertyGreedy) {
+//                topClosureNodes.add(node);
+//            }
 
             /* save the top dot-greedy nodes (.*, .+) as well
             if (node instanceof GreedyCharProperty &&
@@ -3111,7 +3111,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                     loop = new Loop(this.localCount, temp);
                     // handle expressions of the form r{n,m}
                     // add the max_reps greedy to the top-closure-node list
-                    if (curly.cmin >= 1)
+                    if (curly.cmin >= 0)
                         topClosureNodes.add(loop);
                 } else {  // Reluctant Curly
                     loop = new LazyLoop(this.localCount, temp);
