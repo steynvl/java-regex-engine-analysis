@@ -3109,8 +3109,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 Loop loop;
                 if (curly.type == Qtype.GREEDY) {
                     loop = new Loop(this.localCount, temp);
+                    // handle expressions of the form r{n,m}
                     // add the max_reps greedy to the top-closure-node list
-                    if (curly.cmax == MAX_REPS)
+                    if (curly.cmin >= 1)
                         topClosureNodes.add(loop);
                 } else {  // Reluctant Curly
                     loop = new LazyLoop(this.localCount, temp);
