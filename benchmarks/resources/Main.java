@@ -1,5 +1,6 @@
 package za.ac.sun.cs.regex;
 
+import com.google.common.testing.GcFinalization;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -142,9 +143,21 @@ public class Main {
         final Runnable tryMatch = new Thread(() -> {
             long startTime = System.nanoTime();
 
+            GcFinalization.awaitFullGc();
+            long memBefore = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
             Pattern pattern = Pattern.compile(patternString.pattern);
             Matcher matcher = pattern.matcher(patternString.exploitString.exampleString);
             matcher.matches();
+
+            GcFinalization.awaitFullGc();
+            long memUsed = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) - memBefore;
+            if (memUsed < 0) {
+                report.setMemoryUsed("0");
+            } else {
+                report.setMemoryUsed(String.valueOf(memUsed));
+            }
+
 
             long duration = System.nanoTime() - startTime;
             long seconds = TimeUnit.NANOSECONDS.toSeconds(duration);
