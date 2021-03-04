@@ -1802,11 +1802,16 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         // is no group ref in this pattern. With a non-negative localTCNCount value,
         // the greedy type Loop, Curly will skip the backtracking for any starting
         // position "i" that failed in the past.
+        //
+        // Additionally, optimize reedy style repetition (+, *)
         if (!hasGroupRef) {
             for (Node node : topClosureNodes) {
                 if (node instanceof Loop) {
                     // non-deterministic-greedy-group
                     ((Loop)node).posIndex = localTCNCount++;
+                } else if (node instanceof CharPropertyGreedy) {
+                    // greedy style repetition
+                    ((CharPropertyGreedy)node).posIndex = localTCNCount++;
                 }
             }
         }
@@ -2201,16 +2206,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             node = closure(node);
 
             /* save the top greedy node as well */
-//            if (node instanceof CharPropertyGreedy) {
-//                topClosureNodes.add(node);
-//            }
-
-            /* save the top dot-greedy nodes (.*, .+) as well
-            if (node instanceof GreedyCharProperty &&
-                ((GreedyCharProperty)node).cp instanceof Dot) {
+            if (node instanceof CharPropertyGreedy) {
                 topClosureNodes.add(node);
             }
-            */
 
             if (head == null) {
                 head = tail = node;
@@ -4284,10 +4282,12 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
     static class CharPropertyGreedy extends Node {
         final CharPredicate predicate;
         final int cmin;
+        int posIndex;
 
         CharPropertyGreedy(CharProperty cp, int cmin) {
             this.predicate = cp.predicate;
             this.cmin = cmin;
+            this.posIndex = -1;
         }
         boolean match(Matcher matcher, int i,  CharSequence seq) {
             int n = 0;
@@ -4333,6 +4333,14 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         }
 
         boolean match(Matcher matcher, int i,  CharSequence seq) {
+            // check if we already tried and failed at "i" in the past.
+            // If yes, return false to stop exponential backtracking.
+            if (posIndex != -1 && matcher.localsPos[posIndex] == null) {
+                matcher.localsPos[posIndex] = new IntHashSet();
+            } else if (posIndex != -1 && matcher.localsPos[posIndex].contains(i)) {
+                return next.match(matcher, i, seq);
+            }
+
             int n = 0;
             int to = matcher.to;
             while (i < to && predicate.is(seq.charAt(i))) {
@@ -4344,6 +4352,11 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             while (n >= cmin) {
                 if (next.match(matcher, i, seq))
                     return true;
+
+                // save the failed position
+                if (posIndex != -1) {
+                    matcher.localsPos[posIndex].add(i);
+                }
                 i--; n--;  // backing off if match fails
             }
             return false;
