@@ -66,7 +66,7 @@ def run_benchmarks(results: List[Dict[str, List[str]]]):
 
 def process_output(out: List[str], java_version: str, results: List[Dict[str, List[str]]]):
     current_regex, current_exploit = None, None
-    times = []
+    times, memory = [], []
     for line in map(lambda l: l.strip(), out):
         if line.startswith('regex: '):
             current_regex = line[7:]
@@ -86,7 +86,13 @@ def process_output(out: List[str], java_version: str, results: List[Dict[str, Li
             line_list = line.split()
             if len(line_list) != 2: continue
             times.append(line_list[0])
-    results.append({java_version: times})
+            memory.append(line_list[1])
+    results.append({
+        java_version: {
+            'times': times,
+            'memory': memory
+        }
+    })
 
 
 def write_results(results: List[Dict[str, List[str]]]):
