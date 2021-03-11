@@ -64,7 +64,7 @@ def run_benchmarks(results: List[Dict[str, List[str]]]):
         run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)), results)
 
 
-def process_output(out: List[str], java_version: str, results: List[Dict[str, List[str]]]):
+def process_output(out: List[str], java_version: str, results: List[Dict[str, Dict[str, List[str]]]]):
     current_regex, current_exploit = None, None
     times, memory = [], []
     for line in map(lambda l: l.strip(), out):
