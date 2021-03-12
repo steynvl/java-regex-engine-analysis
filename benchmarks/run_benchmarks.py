@@ -28,7 +28,7 @@ def get_last(path: Union[str, Path]):
     return path[path.rfind('/')+1:]
 
 
-def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[str]]]):
+def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, Dict[str, List[str]]]]):
     assert path_to_src.is_dir()
     curr_dir = os.getcwd()
     os.chdir(str(path_to_src))
@@ -59,7 +59,7 @@ def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[str]]
     os.chdir(curr_dir)
 
 
-def run_benchmarks(results: List[Dict[str, List[str]]]):
+def run_benchmarks(results: List[Dict[str, Dict[str, List[str]]]]):
     for version in os.listdir(ENGINE_VERSIONS):
         run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)), results)
 
