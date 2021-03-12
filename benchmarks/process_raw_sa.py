@@ -59,6 +59,12 @@ def process(analysis_summary: Dict, reader: Reader):
         num_sa_failures = 0
         while reader.has_next():
             line = reader.next_line()
+
+            mtch = re.search(r'Number of SimpleAnalysis timeouts: (\d+)', line)
+            if mtch is not None:
+                analysis_summary['num_simple_analysis_timeout'] = mtch.group(1)
+                continue
+
             if re.search(r'^\d+:', line) is None:
                 continue
             current_pattern = line[line.find(' ')+1:]
