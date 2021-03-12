@@ -7,17 +7,23 @@ from pathlib import Path
 from typing import Union, List, Dict
 
 
-DATA_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib_analysis_results.json').resolve()
-assert DATA_FILE.is_file()
+REGEXLIB_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib').resolve()
+assert REGEXLIB_DIR.is_dir()
+POLYGLOT_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/polyglot').resolve()
+assert POLYGLOT_DIR.is_dir()
+DATA_DIRS = [REGEXLIB_DIR, POLYGLOT_DIR]
+
+DATA_FILES = [
+    Path('{}/regexes_with_pivot_nodes.json'.format(REGEXLIB_DIR)).resolve(),
+    Path('{}/regexes_with_pivot_nodes.json'.format(POLYGLOT_DIR)).resolve()
+]
+assert all(df.is_file() for df in DATA_FILES)
 
 JAVA_BENCHMARK_FILE = Path(os.path.dirname(os.path.realpath(__file__)) + '/resources/Main.java').resolve()
 assert JAVA_BENCHMARK_FILE.is_file()
 
 ENGINE_VERSIONS = Path(os.path.dirname(os.path.realpath(__file__)) + '/../engine_versions').resolve()
 assert ENGINE_VERSIONS.is_dir()
-
-RESULTS_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/results/').resolve()
-assert RESULTS_DIR.is_dir()
 
 PACKAGE_NAME = '/src/main/java/za/ac/sun/cs/regex/'
 
@@ -28,7 +34,8 @@ def get_last(path: Union[str, Path]):
     return path[path.rfind('/')+1:]
 
 
-def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, Dict[str, List[str]]]]):
+def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[Dict[str, str]]]],
+                           data_file: Path):
     assert path_to_src.is_dir()
     curr_dir = os.getcwd()
     os.chdir(str(path_to_src))
@@ -44,7 +51,7 @@ def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, Dict[str, 
     print('jdk{} compiled successfully!'.format(version_nr))
 
     benchmark_jar = '{}/target/java-regex-v{}-1.0-SNAPSHOT-jar-with-dependencies.jar --jsonfile {} --timeout {}'\
-        .format(path_to_src, version_nr, DATA_FILE, 6)
+        .format(path_to_src, version_nr, data_file, 6)
     cmd = Command('java -jar {}'.format(benchmark_jar), path_to_src)
     print('Running {}'.format(cmd.cmd))
     sig, out, _ = cmd.run()
@@ -59,15 +66,17 @@ def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, Dict[str, 
     os.chdir(curr_dir)
 
 
-def run_benchmarks(results: List[Dict[str, Dict[str, List[str]]]]):
+def run_benchmarks(results: List[Dict[str, List[Dict[str, str]]]], data_file: Path):
     for version in os.listdir(ENGINE_VERSIONS):
-        run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)), results)
+        run_version_benchmarks(Path('{}/{}'.format(ENGINE_VERSIONS, version)),
+                               results, data_file)
 
 
-def process_output(out: List[str], java_version: str, results: List[Dict[str, Dict[str, List[str]]]]):
+def process_output(out: List[str], java_version: str, results: List[Dict[str, List[Dict[str, str]]]]):
     current_regex, current_exploit = None, None
-    times, memory = [], []
+    data = []
     for line in map(lambda l: l.strip(), out):
+        print(line)
         if line.startswith('regex: '):
             current_regex = line[7:]
         elif line.startswith('exploit: '):
@@ -76,34 +85,39 @@ def process_output(out: List[str], java_version: str, results: List[Dict[str, Di
             print('Skipping due to unexpected exception!')
             current_regex, current_exploit = None, None
         elif line == 'TimeoutException':
-            times.append('timeout')
             if current_regex is not None and current_exploit is not None:
                 print('TIMED OUT: {} [exploit={}]'.format(current_regex, current_exploit))
             else:
                 print('TIMED OUT: no regex or exploit available...')
+            data.append({
+                'time': 'timeout',
+                'memory': 'timeout',
+                'pattern': current_regex,
+                'exploit': current_exploit,
+            })
             current_regex, current_exploit = None, None
         else:
             line_list = line.split()
             if len(line_list) != 2: continue
-            times.append(line_list[0])
-            memory.append(line_list[1])
-    results.append({
-        java_version: {
-            'times': times,
-            'memory': memory
-        }
-    })
+            data.append({
+                'time': line_list[0],
+                'memory': line_list[1],
+                'pattern': current_regex,
+                'exploit': current_exploit,
+            })
+    results.append({java_version: data})
 
 
-def write_results(results: List[Dict[str, List[str]]]):
-    with open('{}/results_{}'.format(RESULTS_DIR, DATA_FILE.name), 'w', encoding='utf-8') as f:
+def write_results(results: List[Dict[str, List[Dict[str, str]]]], data_dir: Path):
+    with open('{}/java_benchmarks.json'.format(data_dir), 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2)
 
 
 def main():
-    results = []
-    run_benchmarks(results)
-    write_results(results)
+    for data_file, data_dir in zip(DATA_FILES, DATA_DIRS):
+        results = []
+        run_benchmarks(results, data_file)
+        write_results(results, data_dir)
 
 
 if __name__ == '__main__':

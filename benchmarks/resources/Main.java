@@ -43,7 +43,7 @@ public class Main {
             sb.append(patternString.pattern);
             sb.append("\n");
             sb.append("exploit: ");
-            sb.append(patternString.exploitString.toString());
+            sb.append(patternString.exploitString.exampleString);
             sb.append("\n");
 
             if (error != null) {
