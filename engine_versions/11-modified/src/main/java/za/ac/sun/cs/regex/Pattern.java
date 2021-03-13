@@ -2211,7 +2211,10 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             } else if (node instanceof Curly) {
                 Curly curly = (Curly) node;
                 if (curly.type == Qtype.GREEDY && curly.cmin > 0) {
-                    Loop loop = new Loop(this.localCount, this.localCount);
+                    Loop loop = new Loop(this.localCount, 0);
+                    loop.cmax = curly.cmax;
+                    loop.cmin = curly.cmin;
+                    loop.body = head == null ? loop : head;
                     topClosureNodes.add(loop);
                     node = loop;
                 }
@@ -2223,6 +2226,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 tail.next = node;
                 tail = node;
             }
+
         }
         if (head == null) {
             return end;
