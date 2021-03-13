@@ -8,10 +8,9 @@ from typing import Union, List, Dict
 
 
 REGEXLIB_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/regexlib').resolve()
-assert REGEXLIB_DIR.is_dir()
 POLYGLOT_DIR = Path(os.path.dirname(os.path.realpath(__file__)) + '/data/polyglot').resolve()
-assert POLYGLOT_DIR.is_dir()
 DATA_DIRS = [REGEXLIB_DIR, POLYGLOT_DIR]
+assert all(dd.is_dir() for dd in DATA_DIRS)
 
 DATA_FILES = [
     Path('{}/regexes_with_pivot_nodes.json'.format(REGEXLIB_DIR)).resolve(),
@@ -54,9 +53,10 @@ def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[Dict[
         .format(path_to_src, version_nr, data_file, 6)
     cmd = Command('java -jar {}'.format(benchmark_jar), path_to_src)
     print('Running {}'.format(cmd.cmd))
-    sig, out, _ = cmd.run()
-    if sig != 0:
+    sig, out, err = cmd.run()
+    if sig != 0 and sig != 'SIGTERM':
         print('\'{}\' returned exit code {}'.format(cmd.cmd, sig))
+        print(err)
         sys.exit(2)
     else:
         process_output(out.split('\n'), version_nr, results)

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict
 
 
-class Reader:
+class Scanner:
 
     def __init__(self, lines: List[str]):
         self._lines = lines
@@ -24,12 +24,12 @@ class Reader:
         return self._idx < len(self._lines)
 
 
-def read_raw(raw_file: Path) -> Reader:
+def read_raw(raw_file: Path) -> Scanner:
     with open(str(raw_file), 'r') as f:
-        return Reader([l.rstrip() for l in f.readlines()])
+        return Scanner([l.rstrip() for l in f.readlines()])
 
 
-def process(analysis_summary: Dict, reader: Reader):
+def process(analysis_summary: Dict, reader: Scanner):
     def parse_summary():
         while reader.has_next():
             line = reader.next_line()
@@ -115,7 +115,7 @@ def main(raw_file: Path):
     raw_out = read_raw(raw_file)
     analysis_summary = {}
     process(analysis_summary, raw_out)
-    target = Path('{}/analysis_summary.json'.format(os.path.abspath(os.path.dirname(str(raw_file)))))
+    target = Path('{}/simple_analysis.json'.format(os.path.abspath(os.path.dirname(str(raw_file)))))
     write_to_json(analysis_summary, target)
 
 
@@ -127,5 +127,6 @@ if __name__ == '__main__':
     file = Path(sys.argv[1])
     if not file.is_file():
         print('{} is not a file!'.format(file))
+        sys.exit(1)
 
     main(file)
