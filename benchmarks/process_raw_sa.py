@@ -18,7 +18,10 @@ class Scanner:
         return line
 
     def peek(self) -> str:
-        return self._lines[self._idx]
+        if self._idx < len(self._lines):
+            return self._lines[self._idx]
+        else:
+            return ''
 
     def has_next(self) -> bool:
         return self._idx < len(self._lines)
@@ -57,6 +60,7 @@ def process(analysis_summary: Dict, reader: Scanner):
     def parse_patterns():
         patterns = []
         num_sa_failures = 0
+        current_pattern = ''
         while reader.has_next():
             line = reader.next_line()
 
@@ -65,9 +69,8 @@ def process(analysis_summary: Dict, reader: Scanner):
                 analysis_summary['num_simple_analysis_timeout'] = mtch.group(1)
                 continue
 
-            if re.search(r'^\d+:', line) is None:
-                continue
-            current_pattern = line[line.find(' ')+1:]
+            if re.search(r'^\d+:', line) is not None:
+                current_pattern = line[line.find(' ')+1:]
 
             while True:
                 if reader.peek().startswith('Memoization policy:'):
@@ -77,9 +80,10 @@ def process(analysis_summary: Dict, reader: Scanner):
                 else:
                     break
 
-            msg = reader.next_line()
-            if msg.startswith('Simple analysis failed.'):
+            if reader.peek().startswith('Simple analysis failed.'):
+                reader.next_line()
                 num_sa_failures += 1
+                continue
 
             if reader.peek().startswith('Number of nodes selected for memoization:'):
                 reader.next_line()
@@ -90,6 +94,7 @@ def process(analysis_summary: Dict, reader: Scanner):
                 pattern['indeg'] = get_state_and_exec(mtch)
                 mtch = re.search(r'- Ancestor: (\d+) \(Execution time: (\d+)ms\)', reader.next_line())
                 pattern['ancestor'] = get_state_and_exec(mtch)
+                reader.next_line()
                 patterns.append(pattern)
 
         analysis_summary['num_simple_analysis_failures'] = num_sa_failures
