@@ -2208,16 +2208,6 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             /* save the top greedy node as well */
             if (node instanceof CharPropertyGreedy) {
                 topClosureNodes.add(node);
-            } else if (node instanceof Curly) {
-                Curly curly = (Curly) node;
-                if (curly.type == Qtype.GREEDY && curly.cmin > 0) {
-                    Loop loop = new Loop(this.localCount, 0);
-                    loop.cmax = curly.cmax;
-                    loop.cmin = curly.cmin;
-                    loop.body = head == null ? loop : head;
-                    topClosureNodes.add(loop);
-                    node = loop;
-                }
             }
 
             if (head == null) {
