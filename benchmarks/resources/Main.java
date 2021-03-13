@@ -141,14 +141,18 @@ public class Main {
 
     private static void processPatternString(PatternString patternString, Report report) {
         final Runnable tryMatch = new Thread(() -> {
-            long startTime = System.nanoTime();
-
             GcFinalization.awaitFullGc();
             long memBefore = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
+            long startTime = System.nanoTime();
             Pattern pattern = Pattern.compile(patternString.pattern);
             Matcher matcher = pattern.matcher(patternString.exploitString.exampleString);
             matcher.matches();
+            long duration = System.nanoTime() - startTime;
+            long seconds = TimeUnit.NANOSECONDS.toSeconds(duration);
+            if (seconds < (double)TIMEOUT) {
+                report.setTime(String.valueOf(TimeUnit.NANOSECONDS.toMillis(duration)));
+            }
 
             GcFinalization.awaitFullGc();
             long memUsed = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) - memBefore;
@@ -156,13 +160,6 @@ public class Main {
                 report.setMemoryUsed("0");
             } else {
                 report.setMemoryUsed(String.valueOf(memUsed));
-            }
-
-
-            long duration = System.nanoTime() - startTime;
-            long seconds = TimeUnit.NANOSECONDS.toSeconds(duration);
-            if (seconds < (double)TIMEOUT) {
-                report.setTime(String.valueOf(TimeUnit.NANOSECONDS.toMillis(duration)));
             }
         });
 

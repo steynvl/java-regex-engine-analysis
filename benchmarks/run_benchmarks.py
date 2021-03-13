@@ -50,7 +50,7 @@ def run_version_benchmarks(path_to_src: Path, results: List[Dict[str, List[Dict[
     print('jdk{} compiled successfully!'.format(version_nr))
 
     benchmark_jar = '{}/target/java-regex-v{}-1.0-SNAPSHOT-jar-with-dependencies.jar --jsonfile {} --timeout {}'\
-        .format(path_to_src, version_nr, data_file, 6)
+        .format(path_to_src, version_nr, data_file, 5)
     cmd = Command('java -jar {}'.format(benchmark_jar), path_to_src)
     print('Running {}'.format(cmd.cmd))
     sig, out, err = cmd.run()
